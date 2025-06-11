@@ -1,143 +1,127 @@
 import React, { useState } from 'react';
-import Highcharts from 'highcharts';
-import HighchartsReact from 'highcharts-react-official';
-import Timeline from 'highcharts/modules/timeline';
-import Wordcloud from 'highcharts/modules/wordcloud';
-
-// Initialize the modules
-// Timeline(Highcharts);
-// Wordcloud(Highcharts);
-
-// Sample Data
+import ReactECharts from 'echarts-for-react';
+import 'echarts-wordcloud';
+// Sample data
 const departmentData = [
-  { name: 'Electronics', y: 10 },
-  { name: 'Clothing', y: 7 },
+  { name: 'Electronics', value: 10 },
+  { name: 'Clothing', value: 7 },
 ];
 
 const subcategoryMap = {
   Electronics: [
-    ['Laptops', 5],
-    ['Mobiles', 3],
-    ['TVs', 2],
+    { name: 'Laptops', value: 5 },
+    { name: 'Mobiles', value: 3 },
+    { name: 'TVs', value: 2 },
   ],
   Clothing: [
-    ['Men', 4],
-    ['Women', 3],
+    { name: 'Men', value: 4 },
+    { name: 'Women', value: 3 },
   ],
 };
 
 const journeyData = [
-  {
-    name: 'Visit Website',
-    label: 'Step 1',
-    description: 'User lands on homepage',
-    x: Date.UTC(2023, 8, 1)
-  },
-  {
-    name: 'Browse Products',
-    label: 'Step 2',
-    description: 'User explores categories',
-    x: Date.UTC(2023, 8, 2)
-  },
-  {
-    name: 'Add to Cart',
-    label: 'Step 3',
-    description: 'Product added to cart',
-    x: Date.UTC(2023, 8, 3)
-  },
-  {
-    name: 'Checkout',
-    label: 'Step 4',
-    description: 'User proceeds to payment',
-    x: Date.UTC(2023, 8, 4)
-  },
-  {
-    name: 'Order Placed',
-    label: 'Step 5',
-    description: 'Order completed',
-    x: Date.UTC(2023, 8, 5)
-  },
+  { name: 'Visit Website', desc: 'User lands on homepage', time: '2023-09-01' },
+  { name: 'Browse Products', desc: 'User explores categories', time: '2023-09-02' },
+  { name: 'Add to Cart', desc: 'Product added to cart', time: '2023-09-03' },
+  { name: 'Checkout', desc: 'User proceeds to payment', time: '2023-09-04' },
+  { name: 'Order Placed', desc: 'Order completed', time: '2023-09-05' },
 ];
 
-const wordCloudOptions = {
-  chart: { type: 'wordcloud' },
-  title: { text: 'Sample Word Cloud' },
-  series: [{
-    type: 'wordcloud',
-    data: [
-      { name: 'Highcharts', weight: 10 },
-      { name: 'JavaScript', weight: 9 },
-      { name: 'Charting', weight: 8 },
-      { name: 'Data', weight: 7 },
-      { name: 'Visualization', weight: 6 },
-      { name: 'Graphics', weight: 5 },
-      { name: 'Interactive', weight: 4 },
-      { name: 'Library', weight: 3 },
-      { name: 'Open Source', weight: 2 },
-      { name: 'Web', weight: 1 }
-    ],
-    name: 'Occurrences'
-  }],
-  tooltip: {
-    pointFormat: '{point.name}: <b>{point.weight}</b>'
-  }
-};
+const wordCloudData = [
+  { name: 'ECharts', value: 100 },
+  { name: 'JavaScript', value: 90 },
+  { name: 'Charting', value: 80 },
+  { name: 'Data', value: 70 },
+  { name: 'Visualization', value: 60 },
+  { name: 'Graphics', value: 50 },
+  { name: 'Interactive', value: 40 },
+  { name: 'Library', value: 30 },
+  { name: 'Open Source', value: 20 },
+  { name: 'Web', value: 10 },
+];
 
-const journeyMapOptions = {
-  chart: { type: 'timeline' },
-  title: { text: 'User Journey Map' },
-  xAxis: {
-    visible: false,
-    type: 'datetime'
-  },
-  series: [{
-    data: journeyData
-  }]
-};
-
-const ChartWithSideDrilldown = () => {
+const ChartWithSideDrilldownECharts = () => {
   const [selectedDept, setSelectedDept] = useState(null);
 
-  const chart1Options = {
-    chart: { type: 'column' },
+  const barChartOptions = {
     title: { text: 'Sales by Department' },
-    xAxis: { type: 'category' },
-    yAxis: { title: { text: 'Values' } },
-    legend: { enabled: false },
-    plotOptions: {
-      series: {
-        cursor: 'pointer',
-        borderWidth: 0,
-        dataLabels: { enabled: true },
-        point: {
-          events: {
-            click: function () {
-              setSelectedDept(this.name);
-            }
-          }
-        }
-      }
+    tooltip: {},
+    xAxis: {
+      type: 'category',
+      data: departmentData.map((d) => d.name),
     },
-    series: [{
-      name: 'Departments',
-      colorByPoint: true,
-      data: departmentData
-    }]
+    yAxis: { type: 'value' },
+    series: [
+      {
+        type: 'bar',
+        data: departmentData.map((d) => d.value),
+      },
+    ],
   };
 
-  const chart2Options = {
-    chart: { type: 'column' },
+  const subcategoryOptions = {
     title: {
-      text: selectedDept ? `Sales in ${selectedDept}` : 'Click a department to view details'
+      text: selectedDept
+        ? `Sales in ${selectedDept}`
+        : 'Click a department to view details',
     },
-    xAxis: { type: 'category' },
-    yAxis: { title: { text: 'Values' } },
-    legend: { enabled: false },
-    series: [{
-      name: selectedDept || '',
-      colorByPoint: true,
-      data: subcategoryMap[selectedDept] || []
-    }]
+    tooltip: {},
+    xAxis: {
+      type: 'category',
+      data: selectedDept ? subcategoryMap[selectedDept].map((d) => d.name) : [],
+    },
+    yAxis: { type: 'value' },
+    series: [
+      {
+        type: 'bar',
+        data: selectedDept ? subcategoryMap[selectedDept].map((d) => d.value) : [],
+      },
+    ],
+  };
+
+  const wordCloudOptions = {
+    series: [
+      {
+        type: 'wordCloud',
+        shape: 'circle',
+        sizeRange: [12, 60],
+        rotationRange: [-90, 90],
+        gridSize: 8,
+        data: wordCloudData,
+      },
+    ],
+  };
+
+  const journeyOptions = {
+    title: { text: 'User Journey Map' },
+    tooltip: {
+      trigger: 'item',
+      formatter: function (params) {
+        return `<b>${params.data.name}</b><br/>${params.data.desc}<br/>${params.data.time}`;
+      },
+    },
+    xAxis: {
+      type: 'category',
+      data: journeyData.map((step) => step.time),
+    },
+    yAxis: { show: false },
+    series: [
+      {
+        type: 'scatter',
+        symbolSize: 50,
+        data: journeyData.map((step, i) => ({
+          value: [step.time, i],
+          name: step.name,
+          desc: step.desc,
+          time: step.time,
+        })),
+        label: {
+          show: true,
+          formatter: '{b}',
+          position: 'top',
+        },
+      },
+    ],
   };
 
   return (
@@ -151,20 +135,30 @@ const ChartWithSideDrilldown = () => {
       }}
     >
       <div>
-        <HighchartsReact highcharts={Highcharts} options={chart1Options} />
+        <ReactECharts
+          option={barChartOptions}
+          onEvents={{
+            click: (params) => {
+              const dept = departmentData[params.dataIndex]?.name;
+              if (dept) setSelectedDept(dept);
+            },
+          }}
+        />
       </div>
+
       <div>
-        <HighchartsReact highcharts={Highcharts} options={chart2Options} />
+        <ReactECharts option={subcategoryOptions} />
       </div>
+
       <div>
-        <HighchartsReact highcharts={Highcharts} options={wordCloudOptions} />
+        <ReactECharts option={wordCloudOptions} />
       </div>
+
       <div>
-        <HighchartsReact highcharts={Highcharts} options={journeyMapOptions} />
+        <ReactECharts option={journeyOptions} />
       </div>
     </div>
   );
 };
 
-export default ChartWithSideDrilldown;
-
+export default ChartWithSideDrilldownECharts;
