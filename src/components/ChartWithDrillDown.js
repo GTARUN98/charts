@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import ReactECharts from 'echarts-for-react';
 import 'echarts-wordcloud';
-// Sample data
+
 const departmentData = [
   { name: 'Electronics', value: 10 },
   { name: 'Clothing', value: 7 },
@@ -43,40 +43,58 @@ const wordCloudData = [
 const ChartWithSideDrilldownECharts = () => {
   const [selectedDept, setSelectedDept] = useState(null);
 
-  const barChartOptions = {
-    title: { text: 'Sales by Department' },
-    tooltip: {},
-    xAxis: {
-      type: 'category',
-      data: departmentData.map((d) => d.name),
-    },
-    yAxis: { type: 'value' },
-    series: [
-      {
-        type: 'bar',
-        data: departmentData.map((d) => d.value),
-      },
-    ],
-  };
+  const getBarChartOptions = () => {
+    const isDrilldown = !!selectedDept;
+    const data = isDrilldown
+      ? subcategoryMap[selectedDept]
+      : departmentData;
 
-  const subcategoryOptions = {
-    title: {
-      text: selectedDept
-        ? `Sales in ${selectedDept}`
-        : 'Click a department to view details',
-    },
-    tooltip: {},
-    xAxis: {
-      type: 'category',
-      data: selectedDept ? subcategoryMap[selectedDept].map((d) => d.name) : [],
-    },
-    yAxis: { type: 'value' },
-    series: [
-      {
-        type: 'bar',
-        data: selectedDept ? subcategoryMap[selectedDept].map((d) => d.value) : [],
+    return {
+      title: {
+        text: isDrilldown ? `Sales in ${selectedDept}` : 'Sales by Department',
+        left: 'center',
       },
-    ],
+      tooltip: {},
+      xAxis: {
+        type: 'category',
+        data: data.map((d) => d.name),
+        animation: true,
+      },
+      yAxis: {
+        type: 'value',
+        animation: true,
+      },
+      series: [
+        {
+          type: 'bar',
+          universalTransition: true, // 👈 Smooth Power BI–style transitions
+          data: data.map((d) => ({
+            name: d.name,
+            value: d.value,
+          })),
+          itemStyle: {
+            color: isDrilldown ? '#73c0de' : '#5470c6',
+          },
+        },
+      ],
+      graphic: isDrilldown
+        ? [
+            {
+              type: 'text',
+              left: '5%',
+              top: '5%',
+              style: {
+                text: '🔙 Back',
+                fill: '#1890ff',
+                font: 'bold 14px sans-serif',
+                cursor: 'pointer',
+              },
+              onclick: () => setSelectedDept(null),
+            },
+          ]
+        : [],
+      animationDurationUpdate: 500,
+    };
   };
 
   const wordCloudOptions = {
@@ -96,7 +114,7 @@ const ChartWithSideDrilldownECharts = () => {
     title: { text: 'User Journey Map' },
     tooltip: {
       trigger: 'item',
-      formatter: function (params) {
+      formatter: (params) => {
         return `<b>${params.data.name}</b><br/>${params.data.desc}<br/>${params.data.time}`;
       },
     },
@@ -136,29 +154,29 @@ const ChartWithSideDrilldownECharts = () => {
     >
       <div>
         <ReactECharts
-          option={barChartOptions}
+          option={getBarChartOptions()}
           onEvents={{
             click: (params) => {
-              const dept = departmentData[params.dataIndex]?.name;
-              if (dept) setSelectedDept(dept);
+              if (!selectedDept) {
+                const dept = departmentData[params.dataIndex]?.name;
+                if (dept) setSelectedDept(dept);
+              }
             },
           }}
+          style={{ height: 400 }}
         />
       </div>
 
       <div>
-        <ReactECharts option={subcategoryOptions} />
+        <ReactECharts option={wordCloudOptions} style={{ height: 400 }} />
       </div>
 
-      <div>
-        <ReactECharts option={wordCloudOptions} />
-      </div>
-
-      <div>
-        <ReactECharts option={journeyOptions} />
+      <div style={{ gridColumn: '1 / span 2' }}>
+        <ReactECharts option={journeyOptions} style={{ height: 300 }} />
       </div>
     </div>
   );
 };
 
 export default ChartWithSideDrilldownECharts;
+
